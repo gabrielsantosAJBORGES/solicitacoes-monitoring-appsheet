@@ -183,6 +183,9 @@ async function checkAppSheetTickets() {
                   novos++;
                   console.log(`[AJ BORGES - NOVO TICKET] LT: ${lt} | Motivo: ${row[motIdx]} | Status: ${status}`);
 
+                  // Link direto que abre exatamente o formulário de conclusão deste ticket
+                  const linkConcluir = `https://www.appsheet.com/start/99a949c9-17de-4231-9a5e-d40543a6d20a?platform=desktop#appName=MonitoringApp50-882994532&view=Tickets%20-%20Conclus%C3%A3o&row=${encodeURIComponent(rowNumber)}`;
+
                   const msg = 
 `🚨 *NOVO ACIONAMENTO / TICKET DE DESCARGA* 🚨
 
@@ -195,10 +198,15 @@ async function checkAppSheetTickets() {
 🚛 *Placa:* ${row[placaIdx] || 'Não informada'}
 📍 *Rota:* ${row[origIdx] || ''} ➔ ${row[destIdx] || ''}
 ⚡ *Status:* ${status || 'ABERTO'}
-📝 *Descrição:* ${descricao}`;
+📝 *Descrição:* ${descricao}
+
+━━━━━━━━━━━━━━━━━━━━━━
+👉 *CLIQUE AQUI PARA CONCLUIR O ATENDIMENTO:*
+🔗 ${linkConcluir}
+━━━━━━━━━━━━━━━━━━━━━━`;
 
                   await sendToWhatsApp(msg);
-                  console.log(`✅ Ticket AJ BORGES ${ticketId} enviado para o grupo de WhatsApp!`);
+                  console.log(`✅ Ticket AJ BORGES ${ticketId} enviado para o grupo de WhatsApp com link de conclusão!`);
                 }
               } else {
                 console.log(`[IGNORADO - OUTRA TRANSPORTADORA: "${agencia}"] LT: ${lt}`);
