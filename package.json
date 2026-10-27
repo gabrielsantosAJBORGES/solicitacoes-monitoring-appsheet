@@ -1,0 +1,12 @@
+{
+  "name": "solicitacoes-monitoring-whatsapp",
+  "version": "1.0.0",
+  "description": "Robô de monitoramento de solicitações de descarga do AppSheet para WhatsApp via Z-API",
+  "main": "monitor.js",
+  "scripts": {
+    "start": "node monitor.js"
+  },
+  "keywords": ["appsheet", "z-api", "whatsapp", "monitoring"],
+  "author": "AJBorges",
+  "license": "ISC"
+}
