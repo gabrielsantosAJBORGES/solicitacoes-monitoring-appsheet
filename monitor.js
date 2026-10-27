@@ -32,6 +32,12 @@ function saveNotifiedTicket(ticketId) {
   }
 }
 
+// Filtro: Apenas transportadora AJ BORGES
+function isTicketFromAJBorges(agenciaText, descText) {
+  const text = `${agenciaText || ''} ${descText || ''}`.toUpperCase().replace(/\s+/g, '');
+  return text.includes('AJBORGES') || text.includes('AJ-BORGES');
+}
+
 // Envio para WhatsApp via Z-API
 async function sendToWhatsApp(messageText) {
   return new Promise((resolve, reject) => {
@@ -158,7 +164,7 @@ async function checkAppSheetTickets() {
           const statusIdx = cols.indexOf('Status');
           const descIdx = cols.indexOf('Descrição');
 
-          console.log(`Tickets no AppSheet: ${ticketDS.data.length} | Tickets no histórico de enviados: ${notified.length}`);
+          console.log(`Tickets no AppSheet: ${ticketDS.data.length} | Histórico: ${notified.length}`);
 
           let novos = 0;
           for (const row of ticketDS.data) {
@@ -166,18 +172,22 @@ async function checkAppSheetTickets() {
             const rowNumber = row[rowNumIdx];
             const lt = (row[ltIdx] || 'S/N').trim();
             const abertura = (row[dtIdx] || '').trim();
+            const agencia = (row[agenciaIdx] || '').trim();
+            const descricao = (row[descIdx] || '').trim();
             const ticketId = `${rowNumber}_${lt}_${abertura}`;
 
-            // Notifica se NÃO estiver CONCLUÍDO e ainda não tiver sido avisado
-            if (status !== 'CONCLUÍDO' && !notified.includes(ticketId)) {
-              novos++;
-              console.log(`[NOVO TICKET DETECTADO] LT: ${lt} | Motivo: ${row[motIdx]} | Status: ${status}`);
+            if (!notified.includes(ticketId)) {
+              // FILTRO EXCLUSIVO AJ BORGES
+              if (isTicketFromAJBorges(agencia, descricao)) {
+                if (status !== 'CONCLUÍDO') {
+                  novos++;
+                  console.log(`[AJ BORGES - NOVO TICKET] LT: ${lt} | Motivo: ${row[motIdx]} | Status: ${status}`);
 
-              const msg = 
+                  const msg = 
 `🚨 *NOVO ACIONAMENTO / TICKET DE DESCARGA* 🚨
 
 📌 *LT:* ${lt}
-🏢 *Agência:* ${row[agenciaIdx] || 'Não informado'}
+🏢 *Agência:* ${agencia || 'AJ BORGES'}
 ⚠️ *Motivo:* ${row[motIdx] || 'Solicitação de Descarga'}
 📅 *Horário de Abertura:* ${abertura || 'Não informado'}
 
@@ -185,16 +195,21 @@ async function checkAppSheetTickets() {
 🚛 *Placa:* ${row[placaIdx] || 'Não informada'}
 📍 *Rota:* ${row[origIdx] || ''} ➔ ${row[destIdx] || ''}
 ⚡ *Status:* ${status || 'ABERTO'}
-📝 *Descrição:* ${row[descIdx] || ''}`;
+📝 *Descrição:* ${descricao}`;
 
-              await sendToWhatsApp(msg);
+                  await sendToWhatsApp(msg);
+                  console.log(`✅ Ticket AJ BORGES ${ticketId} enviado para o grupo de WhatsApp!`);
+                }
+              } else {
+                console.log(`[IGNORADO - OUTRA TRANSPORTADORA: "${agencia}"] LT: ${lt}`);
+              }
+
               saveNotifiedTicket(ticketId);
-              console.log(`✅ Ticket ${ticketId} enviado para o grupo de WhatsApp com sucesso!`);
             }
           }
 
           if (novos === 0) {
-            console.log('Nenhum ticket aberto pendente de notificação no momento.');
+            console.log('Nenhum novo ticket aberto da AJ BORGES no momento.');
           }
 
           resolve();
